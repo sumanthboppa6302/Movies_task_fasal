@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script type="text/javascript">
+        function preventBack() {
+            window.history.forward(); 
+        }
+          
+        setTimeout("preventBack()", 0);
+          
+        window.onunload = function () { null };
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Movies Website</title>
+    <style>
+        body {
+            background-color: lightblue;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 30px;
+        }
+        .category-container {
+            display: flex;
+            overflow-x: auto;
+            width: 100%;
+            margin-bottom: 20px;
+            white-space: nowrap;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+        .category-item {
+            margin-top: 15px;
+            display: inline-block;
+            margin-right: 40px;
+            cursor: pointer;
+            color: #777;
+            transition: color 0.3s ease;
+        }
+        .category-item.bold {
+            font-weight: bold;
+            color: black;
+        }
+        .category-item:hover {
+            color: #333;
+        }
+        .movie-list-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .movie-card {
+            width: 300px;
+            height: auto;
+            background: white;
+            padding: 12px;
+            border-radius: 2px;
+            box-shadow: 2px 2px 4px grey;
+            margin: 12px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        .movie-card:hover {
+            transform: scale(1.05);
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 12px;
+        }
+        .search-bar {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1;
+            background: lightblue;
+            padding: 8px;
+            border-radius: 4px;
+            box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+        .search-bar input[type="text"] {
+            padding: 4px;
+            border: none;
+            border-radius: 4px;
+        }
+        .search-bar button {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 4px;
+            background: #fff;
+            color: grey;
+            cursor: pointer;
+        }
+        .search-bar button:hover {
+            background: #0056b3;
+            color: #fff;
+        }
+        p strong {
+            font-weight: bold;
+        }
+        .logout-button {
+            padding: 10px 20px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .logout-button:hover {
+            background-color: #d32f2f;
+        }
+    </style>
+    <script>
+        function filterMovies(category) {
+            var movieCards = document.getElementsByClassName("movie-card");
+            for (var i = 0; i < movieCards.length; i++) {
+                var card = movieCards[i];
+                var cardCategory = card.getAttribute("data-category");
+                if (cardCategory === category || category === "all") {
+                    card.style.display = "block";
+                } else {
+                    card.style.display = "none";
+                }
+            }
+        }
+
+        function searchMovie() {
+            event.preventDefault(); // Prevent form submission
+            var movieName = document.getElementById("movieName").value.toLowerCase();
+            var movieCards = document.getElementsByClassName("movie-card");
+            for (var i = 0; i < movieCards.length; i++) {
+                var card = movieCards[i];
+                var cardTitle = card.querySelector("h2").innerText.toLowerCase();
+                if (cardTitle.includes(movieName)) {
+                    card.style.display = "block";
+                } else {
+                    card.style.display = "none";
+                }
+            }
+            document.getElementById("movieName").value = "";
+        }
+
+        function preventBack() {
+            window.history.pushState(null, "", window.location.href);
+            window.onpopstate = function() {
+                window.history.pushState(null, "", window.location.href);
+            };
+        }
+
+        window.onload = function() {
+            preventBack();
+        };
+    </script>
+</head>
+<body>
+    <div class="container">
+        <section id="searchBar" class="search-bar">
+            <form onsubmit="searchMovie()">
+                <input type="text" id="movieName" placeholder="Enter a movie name" required>
+                <button type="submit">Search</button>
+            </form>
+        </section>
+        
+        <button class="logout-button" onclick="location.href='{{ url_for('logout') }}'">Logout</button>
+        <div class="category-container">
+            <div class="category-item bold" onclick="filterMovies('all')">All</div>
+            <div class="category-item bold" onclick="filterMovies('popular')">Popular</div>
+            <div class="category-item bold" onclick="filterMovies('top_rated')">Top Rated</div>
+            <div class="category-item bold" onclick="filterMovies('upcoming')">Upcoming</div>
+        </div>
+        <section id="movieDetails" class="movie-list-container">
+            {% for movie in data %}
+                <div class="movie-card" data-category="{{ movie.category }}">
+                    <img src="https://image.tmdb.org/t/p/w500/{{ movie.poster_path }}" alt="{{ movie.title }} Poster">
+                    <h2>{{ movie.title }}</h2>
+                    <p><strong>Release Date:</strong> {{ movie.release_date }}</p>
+                    <p><strong>Overview:</strong> {{ movie.overview }}</p>
+                    <p><strong>Rating:</strong> {{ movie.vote_average }}</p>
+                </div>
+            {% endfor %}
+        </section>
+    </div>
+</body>
+</html>
